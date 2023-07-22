@@ -16,8 +16,8 @@ def overlay_y_on_x(x, y):
     x_[range(x.shape[0]), y] = x.max()
     return x_
 
-class Net(torch.nn.Module):
 
+class Net(torch.nn.Module):
     def __init__(self, dims):
         super().__init__()
         self.layers = []
