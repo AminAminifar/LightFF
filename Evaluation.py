@@ -8,8 +8,8 @@ def print_results(labels_vec, predictions_vec):
     f1_performance = f1_score(labels_vec, predictions_vec, average='macro')
     acc_performance = accuracy_score(labels_vec, predictions_vec)
 
-    print("f1_performance: ", f1_performance)
-    print("acc_performance", acc_performance)
+    print("\tF1-score: ", f1_performance)
+    print("\tAccuracy: ", acc_performance)
 
 
 def eval_train_set(model, inputs, targets):
@@ -25,9 +25,9 @@ def eval_train_set(model, inputs, targets):
         x_pos_ = inputs[chunk_indices[i]]
         y_predicted[chunk_indices[i]] = model.predict(x_pos_).detach().cpu().numpy()
 
-    print("\n Results for the train set: ")
+    print("\nResults for the {}TRAIN{} set: ".format('\033[1m', '\033[0m'))
     print_results(targets.detach().cpu().numpy(), y_predicted)
-    print('train error:', 1.0 - torch.eq(torch.tensor(y_predicted), targets.detach().cpu()).float().mean().item())
+    print('\tError:', 1.0 - torch.eq(torch.tensor(y_predicted), targets.detach().cpu()).float().mean().item())
 
 
 def eval_test_set(model, inputs, targets):
@@ -42,7 +42,7 @@ def eval_test_set(model, inputs, targets):
         x_pos_ = inputs[chunk_indices_test[i]]
         y_predicted[chunk_indices_test[i]] = model.predict(x_pos_).detach().cpu().numpy()
 
-    print("\n Results for the test set: ")
+    print("\nResults for the {}TEST{} set: ".format('\033[1m', '\033[0m'))
     print_results(targets.detach().cpu().numpy(), y_predicted)
-    print('test error:', 1.0 - torch.eq(torch.tensor(y_predicted), targets.detach().cpu()).float().mean().item())
+    print('\tError:', 1.0 - torch.eq(torch.tensor(y_predicted), targets.detach().cpu()).float().mean().item())
 
