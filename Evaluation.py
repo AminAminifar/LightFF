@@ -127,7 +127,7 @@ def analysis_val_set(model, inputs, targets):
     #                                   goodness_per_label_l1_l2_l3, goodness_per_label_l1_l2_l3_l4)
 
     # print(np.shape(goodness_per_label_l1[:100, :]))
-    # t = targets.detach().cpu().numpy()
+    t = targets.detach().cpu().numpy()
     # print(np.shape(t[:100]))
     tools.plot_goodness_distributions(goodness_per_label_l1, t)  # goodness_per_label_l1[:1000, :], t[:1000]
 
