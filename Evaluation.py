@@ -95,9 +95,6 @@ def analysis_val_set(model, inputs, targets):
             temp_l1.detach().cpu().numpy(), temp_l1_l2.detach().cpu().numpy(), \
             temp_l1_l2_l3.detach().cpu().numpy(), temp_l1_l2_l3_l4.detach().cpu().numpy()
 
-        print("__>", np.shape(temp_goodness_per_label_l1.detach().cpu().numpy()), np.shape(goodness_per_label_l1[chunk_indices_validation[i],:]))
-        # exit()
-
         goodness_per_label_l1[chunk_indices_validation[i], :], goodness_per_label_l1_l2[chunk_indices_validation[i], :], \
         goodness_per_label_l1_l2_l3[chunk_indices_validation[i], :], goodness_per_label_l1_l2_l3_l4[chunk_indices_validation[i], :] = \
             temp_goodness_per_label_l1.detach().cpu().numpy(), temp_goodness_per_label_l1_l2.detach().cpu().numpy(), \
@@ -126,10 +123,9 @@ def analysis_val_set(model, inputs, targets):
     # tools.plot_goodness_distributions(goodness_per_label_l1, goodness_per_label_l1_l2,
     #                                   goodness_per_label_l1_l2_l3, goodness_per_label_l1_l2_l3_l4)
 
-    # print(np.shape(goodness_per_label_l1[:100, :]))
-    t = targets.detach().cpu().numpy()
-    # print(np.shape(t[:100]))
-    tools.plot_goodness_distributions(goodness_per_label_l1, t)  # goodness_per_label_l1[:1000, :], t[:1000]
+
+    # t = targets.detach().cpu().numpy()
+    tools.plot_goodness_distributions(goodness_per_label_l1_l2_l3_l4, targets.detach().cpu().numpy())  # goodness_per_label_l1[:1000, :], t[:1000]
 
 
 def analysis_val_set_2l(model, inputs, targets):
