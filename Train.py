@@ -36,6 +36,73 @@ class Net(torch.nn.Module):
         goodness_per_label = torch.cat(goodness_per_label, 1)
         return goodness_per_label.argmax(1)
 
+    def light_predict(self, x):
+        goodness_per_label_l1 = []
+        goodness_per_label_l1_l2 = []
+        goodness_per_label_l1_l2_l3 = []
+        goodness_per_label_l1_l2_l3_l4 = []
+        for label in range(10):
+            h = overlay_y_on_x(x, label)
+            goodness_l1 = []
+            goodness_l1_l2 = []
+            goodness_l1_l2_l3 = []
+            goodness_l1_l2_l3_l4 = []
+            # confidence_threshold = xyz
+            for i, layer in enumerate(self.layers, start=1):
+                if i==1:
+                    h = layer(h)
+                    goodness_l1 += [h.pow(2).mean(1)]
+                    goodness_l1_l2 += [h.pow(2).mean(1)]
+                    goodness_l1_l2_l3 += [h.pow(2).mean(1)]
+                    goodness_l1_l2_l3_l4 += [h.pow(2).mean(1)]
+                elif i==2:
+                    h = layer(h)
+                    goodness_l1_l2 += [h.pow(2).mean(1)]
+                    goodness_l1_l2_l3 += [h.pow(2).mean(1)]
+                    goodness_l1_l2_l3_l4 += [h.pow(2).mean(1)]
+                elif i==3:
+                    h = layer(h)
+                    goodness_l1_l2_l3 += [h.pow(2).mean(1)]
+                    goodness_l1_l2_l3_l4 += [h.pow(2).mean(1)]
+                elif i==4:
+                    h = layer(h)
+                    goodness_l1_l2_l3_l4 += [h.pow(2).mean(1)]
+
+            goodness_per_label_l1 += [sum(goodness_l1).unsqueeze(1)]
+            goodness_per_label_l1_l2 += [sum(goodness_l1_l2).unsqueeze(1)]
+            goodness_per_label_l1_l2_l3 += [sum(goodness_l1_l2_l3).unsqueeze(1)]
+            goodness_per_label_l1_l2_l3_l4 += [sum(goodness_l1_l2_l3_l4).unsqueeze(1)]
+        goodness_per_label_l1 = torch.cat(goodness_per_label_l1, 1)
+        goodness_per_label_l1_l2 = torch.cat(goodness_per_label_l1_l2, 1)
+        goodness_per_label_l1_l2_l3 = torch.cat(goodness_per_label_l1_l2_l3, 1)
+        goodness_per_label_l1_l2_l3_l4 = torch.cat(goodness_per_label_l1_l2_l3_l4, 1)
+        return goodness_per_label_l1.argmax(1), goodness_per_label_l1_l2.argmax(1), \
+            goodness_per_label_l1_l2_l3.argmax(1), goodness_per_label_l1_l2_l3_l4.argmax(1), \
+            goodness_per_label_l1, goodness_per_label_l1_l2, \
+            goodness_per_label_l1_l2_l3, goodness_per_label_l1_l2_l3_l4
+
+    def light_predict_2l(self, x):
+        goodness_per_label_l1 = []
+        goodness_per_label_l1_l2 = []
+        for label in range(10):
+            h = overlay_y_on_x(x, label)
+            goodness_l1 = []
+            goodness_l1_l2 = []
+            # confidence_threshold = xyz
+            for i, layer in enumerate(self.layers, start=1):
+                if i==1:
+                    h = layer(h)
+                    goodness_l1 += [h.pow(2).mean(1)]
+                    goodness_l1_l2 += [h.pow(2).mean(1)]
+                elif i==2:
+                    h = layer(h)
+                    goodness_l1_l2 += [h.pow(2).mean(1)]
+            goodness_per_label_l1 += [sum(goodness_l1).unsqueeze(1)]
+            goodness_per_label_l1_l2 += [sum(goodness_l1_l2).unsqueeze(1)]
+        goodness_per_label_l1 = torch.cat(goodness_per_label_l1, 1)
+        goodness_per_label_l1_l2 = torch.cat(goodness_per_label_l1_l2, 1)
+        return goodness_per_label_l1.argmax(1), goodness_per_label_l1_l2.argmax(1)
+
     def train(self, x_pos, x_neg):
         h_pos, h_neg = x_pos, x_neg
         for i, layer in enumerate(self.layers):
@@ -50,7 +117,7 @@ class Layer(nn.Linear):
         self.relu = torch.nn.ReLU()
         self.opt = Adam(self.parameters(), lr=0.03)
         self.threshold = 2.0
-        self.num_epochs = 1
+        self.num_iterations = 1
 
     def forward(self, x):
         x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
@@ -59,7 +126,7 @@ class Layer(nn.Linear):
             self.bias.unsqueeze(0))
 
     def train(self, x_pos, x_neg):
-        for i in range(self.num_epochs):
+        for i in range(self.num_iterations):
             g_pos = self.forward(x_pos).pow(2).mean(1)
             g_neg = self.forward(x_neg).pow(2).mean(1)
             # The following loss pushes pos (neg) samples to
@@ -86,20 +153,21 @@ def visualize_sample(data, name='', idx=0):
 def build_model(x_pos, x_neg):
     # torch.manual_seed(1234)
     model = Net([784, 500, 500])  # 2000, 2000, 2000, 2000
+    # model = Net([784, 2000, 2000, 2000, 2000])
 
-    Num_Epochs = 100
-    for epoch in tqdm(range(Num_Epochs)):
-
-        train_data_record_indices = range(0, 60000)
+    num_epochs = 100
+    for epoch in tqdm(range(num_epochs)):
+        num_train_samples = 50000  # 60000
+        train_data_record_indices = range(0, num_train_samples)
         train_data_record_indices_shuffled = shuffle(train_data_record_indices)
 
         batch_size = 5000
-        num_batches = int(60000 / batch_size)
+        num_batches = int(num_train_samples / batch_size)
         chunk_indices = np.array_split(train_data_record_indices_shuffled, num_batches)
         for i in range(num_batches):
             x_pos_, x_neg_ = x_pos[chunk_indices[i]], x_neg[chunk_indices[i]]
             model.train(x_pos_, x_neg_)
 
     # save model
-    name = '2L_500N_100E_5000B'  # '4L_2kN_100E_500B'
+    name = '2L_500N_100E_5kB_50kS'  # '4L_2kN_100E_500B'
     torch.save(model, 'model/' + name)
