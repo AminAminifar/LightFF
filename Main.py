@@ -20,7 +20,7 @@ def MNIST_loaders(train_batch_size=60000, test_batch_size=10000):
         MNIST('./data/', train=True,
               download=True,
               transform=transform),
-        batch_size=train_batch_size, shuffle=True)
+        batch_size=train_batch_size, shuffle=False)  # True
 
     test_loader = DataLoader(
         MNIST('./data/', train=False,
@@ -49,7 +49,7 @@ inputs, targets = inputs.cuda(), targets.cuda()
 # create a validation set
 X_train, X_val, y_train, y_val = train_test_split(inputs, targets, test_size=10000, random_state=0)
 
-Train_flag = False
+Train_flag = False  # True False
 
 # train
 if Train_flag:
@@ -60,19 +60,26 @@ if Train_flag:
     Train.build_model(x_pos=x_pos, x_neg=x_neg)
 
 # Load the trained model from saved file
-name = '2L_500N_100E_5000B_50kS'  # '4L_2kN_100E_500B' '2L_500N_100E_5000B'
+# '4L_2kN_100E_500B' '2L_500N_100E_5000B' '4L_2000N_500E_5kB_50kS' '2L_500N_100E_5kB_50kS'
+name = '4L_2000N_500E_5kB_50kS'
 model = torch.load('model/' + name)
 
 # evaluation
-Evaluation.eval_train_set(model, inputs=X_train, targets=y_train)
+# Evaluation.eval_train_set(model, inputs=X_train, targets=y_train)
 
 # test data
 x_te, y_te = next(iter(test_loader))
 x_te, y_te = x_te.cuda(), y_te.cuda()
 
-Evaluation.eval_test_set(model, inputs=x_te, targets=y_te)
+# Evaluation.eval_test_set(model, inputs=x_te, targets=y_te)
 
 # validation data
-Evaluation.eval_val_set(model, inputs=X_val, targets=y_val)
+# Evaluation.eval_val_set(model, inputs=X_val, targets=y_val)
+
+# analysis of validation data
+# Evaluation.analysis_val_set(model, inputs=X_val, targets=y_val)
+Evaluation.analysis_val_set(model, inputs=X_val, targets=y_val)
+
+# Evaluation.analysis_val_set(model, inputs=x_te, targets=y_te)
 
 
