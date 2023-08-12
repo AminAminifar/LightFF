@@ -8,6 +8,8 @@ import Evaluation
 
 from sklearn.model_selection import train_test_split
 
+import tools
+
 
 # load data
 def MNIST_loaders(train_batch_size=60000, test_batch_size=10000):
@@ -65,21 +67,23 @@ name = '4L_2000N_500E_5kB_50kS'
 model = torch.load('model/' + name)
 
 # evaluation
-# Evaluation.eval_train_set(model, inputs=X_train, targets=y_train)
+Evaluation.eval_train_set(model, inputs=X_train, targets=y_train)
 
 # test data
 x_te, y_te = next(iter(test_loader))
 x_te, y_te = x_te.cuda(), y_te.cuda()
 
-# Evaluation.eval_test_set(model, inputs=x_te, targets=y_te)
+Evaluation.eval_test_set(model, inputs=x_te, targets=y_te)
 
 # validation data
-# Evaluation.eval_val_set(model, inputs=X_val, targets=y_val)
+Evaluation.eval_val_set(model, inputs=X_val, targets=y_val)
 
 # analysis of validation data
-# Evaluation.analysis_val_set(model, inputs=X_val, targets=y_val)
-Evaluation.analysis_val_set(model, inputs=X_val, targets=y_val)
+# tools.analysis_val_set_2l(model, inputs=X_val, targets=y_val)
+# tools.analysis_val_set(model, inputs=X_val, targets=y_val)
 
-# Evaluation.analysis_val_set(model, inputs=x_te, targets=y_te)
+Evaluation.eval_val_set_light(model, inputs=X_val, targets=y_val)
+# Evaluation.eval_val_set_light(model, inputs=x_te, targets=y_te)  ## temporary use
+
 
 
