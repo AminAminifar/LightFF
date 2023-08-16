@@ -38,7 +38,7 @@ class Net(torch.nn.Module):
             in_dim = dims[d]
             for i in range(1, d):
                 in_dim += dims[i]
-            self.softmax_layers += [SoftmaxLayer(in_features=in_dim, out_features=10).cuda()]
+            self.softmax_layers += [SoftmaxLayer(in_features=in_dim, out_features=10)]  # .cuda()
 
     def predict(self, x):
         goodness_per_label = []
@@ -172,19 +172,20 @@ class Net(torch.nn.Module):
             h_pos, h_neg = layer.train(h_pos, h_neg)
 
     def train_softmax_layer(self, x_neutral_label, y, batch_size, dims):  # , num_layers, num_neurons
-        h_neutral_label = x_neutral_label
 
         for d, softmax_layer in enumerate(self.softmax_layers, start=0):
+            h_neutral_label = x_neutral_label
             # for softmax layer of layer d
             num_input_features = sum(dims[1:(d + 2)])
             softmax_layer_input = torch.empty((batch_size, num_input_features))
             for i, layer in islice(enumerate(self.layers), 0, (d + 1)):  # from first layer to layer d (d included)
+                # print("i was here ", i, d)
                 h_neutral_label = layer.forward(h_neutral_label)
                 # store the result in softmax_layer_input
                 index_start = sum(dims[1:(i + 1)])
                 index_end = index_start + dims[i + 1]
                 softmax_layer_input[:, index_start:index_end] = h_neutral_label
-            self.softmax_layer.train(softmax_layer_input, y)
+            softmax_layer.train(softmax_layer_input, y)
 
 
 class Layer(nn.Linear):
@@ -253,7 +254,7 @@ def build_model(x_pos, x_neg, x_neutral, targets):
     model = Net(dims)
     # model = Net([784, 2000, 2000, 2000, 2000])
 
-    num_epochs = 100
+    num_epochs = 10
     for epoch in tqdm(range(num_epochs)):
         num_train_samples = 50000  # 60000
         train_data_record_indices = range(0, num_train_samples)
@@ -269,11 +270,11 @@ def build_model(x_pos, x_neg, x_neutral, targets):
     # training the softmax layer
     for epoch in tqdm(range(num_epochs)):
 
-        train_data_record_indices = range(0, 60000)
+        train_data_record_indices = range(0, 50000)
         train_data_record_indices_shuffled = shuffle(train_data_record_indices)
 
         batch_size = 500
-        num_batches = int(60000 / batch_size)
+        num_batches = int(50000 / batch_size)
         chunk_indices = np.array_split(train_data_record_indices_shuffled, num_batches)
         for i in range(num_batches):
             x_neutral_, targets_ = x_neutral[chunk_indices[i]], targets[chunk_indices[i]]
