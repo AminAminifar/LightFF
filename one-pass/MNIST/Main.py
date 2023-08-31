@@ -60,7 +60,7 @@ inputs, targets = inputs.cuda(), targets.cuda()
 # create a validation set
 X_train, X_val, y_train, y_val = train_test_split(inputs, targets, test_size=10000, random_state=0)
 
-Train_flag = True  # True False
+Train_flag = False  # True False
 
 # train
 if Train_flag:
@@ -90,10 +90,9 @@ Evaluation.eval_test_set(model, inputs=x_te, targets=y_te)
 Evaluation.eval_val_set(model, inputs=X_val, targets=y_val)
 
 # analysis of validation data
-# tools.analysis_val_set_2l(model, inputs=X_val, targets=y_val)
-# tools.analysis_val_set(model, inputs=X_val, targets=y_val)
+tools.analysis_val_set(model, inputs=X_val, targets=y_val)
 
-Evaluation.eval_val_set_light(model, inputs=X_val, targets=y_val)
+# Evaluation.eval_val_set_light(model, inputs=X_val, targets=y_val)
 # Evaluation.eval_val_set_light(model, inputs=x_te, targets=y_te)  ## temporary use
 
 

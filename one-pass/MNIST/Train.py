@@ -9,6 +9,7 @@ from sklearn.utils import shuffle
 
 from itertools import islice
 
+
 def overlay_y_on_x(x, y):
     """Replace the first 10 pixels of data [x] with one-hot-encoded label [y]
     """
@@ -52,118 +53,95 @@ class Net(torch.nn.Module):
         goodness_per_label = torch.cat(goodness_per_label, 1)
         return goodness_per_label.argmax(1)
 
-    def light_predict_one_sample(self, x):
-        goodness_per_label = np.zeros(10)
-        h_list = []
-        for label in range(10):
-            h_list.append(overlay_y_on_x(x, label))
+    def predict_one_pass(self, x, batch_size, num_layers, num_neurons):
+        h = overlay_on_x_neutral(x)
+        num_input_features = num_layers * num_neurons
+        softmax_layer_input = torch.empty((batch_size, num_input_features))
+        for i, layer in enumerate(self.layers):
+            h = layer(h)
+            index_start = i * num_neurons
+            index_end = (i + 1) * num_neurons
+            softmax_layer_input[:, index_start:index_end] = h
+        output = self.softmax_layer(softmax_layer_input).argmax(1)
+        # print("output: ", output)
+        return output
 
-        for i, layer in enumerate(self.layers, start=1):
+    # def light_predict_one_sample(self, x, confidence_mean_vec, confidence_std_vec):
+    #     goodness_per_label = np.zeros(10)
+    #     h = x
+    #
+    #     for i, layer in enumerate(self.layers, start=1):
+    #
+    #         # L1
+    #         if i == 1:
+    #             goodness_per_label[label] += h.pow(2).mean(1)
+    #             predicted_with_layers_up_to = 1
+    #             next_layer_flag = False
+    #             if max(goodness_per_label) < (4.342 - 0.940):
+    #                 next_layer_flag = True
+    #         # L2
+    #         elif i == 2 and next_layer_flag:
+    #             for label in range(10):
+    #                 h_list[label] = layer(h_list[label])
+    #                 goodness_per_label[label] += h_list[label].pow(2).mean(1)
+    #             predicted_with_layers_up_to += 1
+    #             next_layer_flag = False
+    #             if max(goodness_per_label) < (8.673 - 1.649):
+    #                 next_layer_flag = True
+    #         # L3
+    #         elif i == 3 and next_layer_flag:
+    #             for label in range(10):
+    #                 h_list[label] = layer(h_list[label])
+    #                 goodness_per_label[label] += h_list[label].pow(2).mean(1)
+    #             predicted_with_layers_up_to += 1
+    #             next_layer_flag = False
+    #             if max(goodness_per_label) < (12.502 - 2.061):
+    #                 next_layer_flag = True
+    #         # L4
+    #         elif i == 4 and  next_layer_flag:
+    #             for label in range(10):
+    #                 h_list[label] = layer(h_list[label])
+    #                 goodness_per_label[label] += h_list[label].pow(2).mean(1)
+    #             predicted_with_layers_up_to += 1
+    #     h_list.clear()
+    #     # print(goodness_per_label, predicted_with_layers_up_to)
+    #     # print(goodness_per_label.argmax(0))
+    #     return goodness_per_label.argmax(0), predicted_with_layers_up_to
 
-            # L1
-            if i == 1:
-                for label in range(10):
-                    h_list[label] = layer(h_list[label])
-                    goodness_per_label[label] += h_list[label].pow(2).mean(1)
-                predicted_with_layers_up_to = 1
-                next_layer_flag = False
-                if max(goodness_per_label) < (4.342 - 0.940):
-                    next_layer_flag = True
-            # L2
-            elif i == 2 and next_layer_flag:
-                for label in range(10):
-                    h_list[label] = layer(h_list[label])
-                    goodness_per_label[label] += h_list[label].pow(2).mean(1)
-                predicted_with_layers_up_to += 1
-                next_layer_flag = False
-                if max(goodness_per_label) < (8.673 - 1.649):
-                    next_layer_flag = True
-            # L3
-            elif i == 3 and next_layer_flag:
-                for label in range(10):
-                    h_list[label] = layer(h_list[label])
-                    goodness_per_label[label] += h_list[label].pow(2).mean(1)
-                predicted_with_layers_up_to += 1
-                next_layer_flag = False
-                if max(goodness_per_label) < (12.502 - 2.061):
-                    next_layer_flag = True
-            # L4
-            elif i == 4 and  next_layer_flag:
-                for label in range(10):
-                    h_list[label] = layer(h_list[label])
-                    goodness_per_label[label] += h_list[label].pow(2).mean(1)
-                predicted_with_layers_up_to += 1
-        h_list.clear()
-        # print(goodness_per_label, predicted_with_layers_up_to)
-        # print(goodness_per_label.argmax(0))
-        return goodness_per_label.argmax(0), predicted_with_layers_up_to
+    def light_predict_analysis(self, x, num_layers):  # dims is not needed; just num layers
+        num_samples = x.shape[0]
 
-    def light_predict_4l(self, x):
-        goodness_per_label_l1 = []
-        goodness_per_label_l1_l2 = []
-        goodness_per_label_l1_l2_l3 = []
-        goodness_per_label_l1_l2_l3_l4 = []
-        for label in range(10):
-            h = overlay_y_on_x(x, label)
-            goodness_l1 = []
-            goodness_l1_l2 = []
-            goodness_l1_l2_l3 = []
-            goodness_l1_l2_l3_l4 = []
-            # confidence_threshold = xyz
-            for i, layer in enumerate(self.layers, start=1):
-                if i==1:
-                    h = layer(h)
-                    goodness_l1 += [h.pow(2).mean(1)]
-                    goodness_l1_l2 += [h.pow(2).mean(1)]
-                    goodness_l1_l2_l3 += [h.pow(2).mean(1)]
-                    goodness_l1_l2_l3_l4 += [h.pow(2).mean(1)]
-                elif i==2:
-                    h = layer(h)
-                    goodness_l1_l2 += [h.pow(2).mean(1)]
-                    goodness_l1_l2_l3 += [h.pow(2).mean(1)]
-                    goodness_l1_l2_l3_l4 += [h.pow(2).mean(1)]
-                elif i==3:
-                    h = layer(h)
-                    goodness_l1_l2_l3 += [h.pow(2).mean(1)]
-                    goodness_l1_l2_l3_l4 += [h.pow(2).mean(1)]
-                elif i==4:
-                    h = layer(h)
-                    goodness_l1_l2_l3_l4 += [h.pow(2).mean(1)]
+        y_predicted_on_layer = np.zeros((num_layers, num_samples))
+        cumulative_goodness_on_layer = np.zeros((num_layers, num_samples))
+        softmax_output_on_layer = np.zeros((num_layers, num_samples, 10))  # 10 is the number of softmax neurons
 
-            goodness_per_label_l1 += [sum(goodness_l1).unsqueeze(1)]
-            goodness_per_label_l1_l2 += [sum(goodness_l1_l2).unsqueeze(1)]
-            goodness_per_label_l1_l2_l3 += [sum(goodness_l1_l2_l3).unsqueeze(1)]
-            goodness_per_label_l1_l2_l3_l4 += [sum(goodness_l1_l2_l3_l4).unsqueeze(1)]
-        goodness_per_label_l1 = torch.cat(goodness_per_label_l1, 1)
-        goodness_per_label_l1_l2 = torch.cat(goodness_per_label_l1_l2, 1)
-        goodness_per_label_l1_l2_l3 = torch.cat(goodness_per_label_l1_l2_l3, 1)
-        goodness_per_label_l1_l2_l3_l4 = torch.cat(goodness_per_label_l1_l2_l3_l4, 1)
-        return goodness_per_label_l1.argmax(1), goodness_per_label_l1_l2.argmax(1), \
-            goodness_per_label_l1_l2_l3.argmax(1), goodness_per_label_l1_l2_l3_l4.argmax(1), \
-            goodness_per_label_l1, goodness_per_label_l1_l2, \
-            goodness_per_label_l1_l2_l3, goodness_per_label_l1_l2_l3_l4
+        # embed neutral label
+        h = overlay_on_x_neutral(x)
+        # softmax_input_size = 0
+        for i, (layer, softmax_layer) in enumerate(zip(self.layers, self.softmax_layers), start=0):
+            h = layer(h)  # should be the same as forward
+            # softmax_input_size += h.size()[1]
+            # softmax_layer_input = torch.empty((num_samples, softmax_input_size))
+            try:
+                softmax_layer_input
+                softmax_layer_input = torch.cat((softmax_layer_input, h.cpu()), 1)
+                # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
+            except NameError:
+                softmax_layer_input = h.cpu()
+                # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
 
-    def light_predict_2l(self, x):
-        goodness_per_label_l1 = []
-        goodness_per_label_l1_l2 = []
-        for label in range(10):
-            h = overlay_y_on_x(x, label)
-            goodness_l1 = []
-            goodness_l1_l2 = []
-            # confidence_threshold = xyz
-            for i, layer in enumerate(self.layers, start=1):
-                if i==1:
-                    h = layer(h)
-                    goodness_l1 += [h.pow(2).mean(1)]
-                    goodness_l1_l2 += [h.pow(2).mean(1)]
-                elif i==2:
-                    h = layer(h)
-                    goodness_l1_l2 += [h.pow(2).mean(1)]
-            goodness_per_label_l1 += [sum(goodness_l1).unsqueeze(1)]
-            goodness_per_label_l1_l2 += [sum(goodness_l1_l2).unsqueeze(1)]
-        goodness_per_label_l1 = torch.cat(goodness_per_label_l1, 1)
-        goodness_per_label_l1_l2 = torch.cat(goodness_per_label_l1_l2, 1)
-        return goodness_per_label_l1.argmax(1), goodness_per_label_l1_l2.argmax(1)
+            for j in range(i, num_layers):
+                cumulative_goodness_on_layer[j, :] += h.pow(2).mean(1).detach().cpu().numpy()
+
+            # print(softmax_layer(softmax_layer_input).shape)
+            # print(softmax_layer(softmax_layer_input).detach().cpu().numpy())
+            y_predicted_on_layer[i, :] = softmax_layer(softmax_layer_input).argmax(1)  # to be checked
+            # softmax_output_on_layer[i, :, :] = softmax_layer(softmax_layer_input).detach().cpu().numpy()
+            softmax_output_on_layer[i, :, :] = softmax_layer.forward_l(softmax_layer_input).detach().cpu().numpy()
+        # print(y_predicted_on_layer.shape)
+        # exit()
+
+        return y_predicted_on_layer, cumulative_goodness_on_layer, softmax_output_on_layer
 
     def train(self, x_pos, x_neg):
         h_pos, h_neg = x_pos, x_neg
@@ -199,9 +177,7 @@ class Layer(nn.Linear):
 
     def forward(self, x):
         x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
-        return self.relu(
-            torch.mm(x_direction, self.weight.T) +
-            self.bias.unsqueeze(0))
+        return self.relu(torch.mm(x_direction, self.weight.T) + self.bias.unsqueeze(0))
 
     def train(self, x_pos, x_neg):
         for i in range(self.num_iterations):
@@ -235,6 +211,11 @@ class SoftmaxLayer(nn.Module):
         output = self.softmax(temp)  # .argmax(1)
         return output
 
+    def forward_l(self, x):
+        #  x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
+        output = self.softmax_l(x)
+        return output
+
     def to_categorical(y, num_classes):
         """ 1-hot encodes a tensor """
         return np.eye(num_classes, dtype='uint8')[y]
@@ -250,11 +231,11 @@ class SoftmaxLayer(nn.Module):
 
 def build_model(x_pos, x_neg, x_neutral, targets):
     # torch.manual_seed(1234)
-    dims = [784, 500, 500]  # 2000, 2000, 2000, 2000
+    dims = [784, 500, 500, 500, 500]  # 2000, 2000, 2000, 2000
     model = Net(dims)
     # model = Net([784, 2000, 2000, 2000, 2000])
 
-    num_epochs = 10
+    num_epochs = 100
     for epoch in tqdm(range(num_epochs)):
         num_train_samples = 50000  # 60000
         train_data_record_indices = range(0, num_train_samples)
@@ -267,6 +248,7 @@ def build_model(x_pos, x_neg, x_neutral, targets):
             x_pos_, x_neg_ = x_pos[chunk_indices[i]], x_neg[chunk_indices[i]]
             model.train(x_pos_, x_neg_)
 
+    # num_epochs = 100
     # training the softmax layer
     for epoch in tqdm(range(num_epochs)):
 
