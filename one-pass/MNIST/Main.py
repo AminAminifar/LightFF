@@ -90,10 +90,15 @@ Evaluation.eval_test_set(model, inputs=x_te, targets=y_te)
 Evaluation.eval_val_set(model, inputs=X_val, targets=y_val)
 
 # analysis of validation data
-tools.analysis_val_set(model, inputs=X_val, targets=y_val)
+# tools.analysis_val_set(model, inputs=X_val, targets=y_val)
 
-# Evaluation.eval_val_set_light(model, inputs=X_val, targets=y_val)
-# Evaluation.eval_val_set_light(model, inputs=x_te, targets=y_te)  ## temporary use
+confidence_mean_vec = [104.860, 164.298, 375.890, 624.190]
+confidence_std_vec = [32.901, 52.548, 114.886, 189.732]
+Evaluation.eval_val_set_light(model, inputs=X_val, targets=y_val,
+                              confidence_mean_vec=confidence_mean_vec, confidence_std_vec=confidence_std_vec)
+# Evaluation.eval_val_set_light(model, inputs=x_te, targets=y_te,
+#                               confidence_mean_vec=confidence_mean_vec,
+#                               confidence_std_vec=confidence_std_vec)  ## temporary use
 
 
 
