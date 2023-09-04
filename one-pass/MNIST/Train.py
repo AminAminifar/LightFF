@@ -53,60 +53,63 @@ class Net(torch.nn.Module):
         goodness_per_label = torch.cat(goodness_per_label, 1)
         return goodness_per_label.argmax(1)
 
-    def predict_one_pass(self, x, batch_size, num_layers, num_neurons):
+
+    def predict_one_pass(self, x, batch_size):
+        num_layers = len(self.layers)
+        # val set
         h = overlay_on_x_neutral(x)
-        num_input_features = num_layers * num_neurons
-        softmax_layer_input = torch.empty((batch_size, num_input_features))
-        for i, layer in enumerate(self.layers):
+
+        for i, (layer, softmax_layer) in enumerate(zip(self.layers, self.softmax_layers), start=0):
             h = layer(h)
-            index_start = i * num_neurons
-            index_end = (i + 1) * num_neurons
-            softmax_layer_input[:, index_start:index_end] = h
-        output = self.softmax_layer(softmax_layer_input).argmax(1)
+
+            try:
+                softmax_layer_input
+                softmax_layer_input = torch.cat((softmax_layer_input, h.cpu()), 1)
+                # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
+            except NameError:
+                softmax_layer_input = h.cpu()
+                # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
+            if i == num_layers - 1:
+                _, softmax_layer_output = softmax_layer(softmax_layer_input)
+
+        output = softmax_layer_output.argmax(1)
         # print("output: ", output)
         return output
 
-    # def light_predict_one_sample(self, x, confidence_mean_vec, confidence_std_vec):
-    #     goodness_per_label = np.zeros(10)
-    #     h = x
-    #
-    #     for i, layer in enumerate(self.layers, start=1):
-    #
-    #         # L1
-    #         if i == 1:
-    #             goodness_per_label[label] += h.pow(2).mean(1)
-    #             predicted_with_layers_up_to = 1
-    #             next_layer_flag = False
-    #             if max(goodness_per_label) < (4.342 - 0.940):
-    #                 next_layer_flag = True
-    #         # L2
-    #         elif i == 2 and next_layer_flag:
-    #             for label in range(10):
-    #                 h_list[label] = layer(h_list[label])
-    #                 goodness_per_label[label] += h_list[label].pow(2).mean(1)
-    #             predicted_with_layers_up_to += 1
-    #             next_layer_flag = False
-    #             if max(goodness_per_label) < (8.673 - 1.649):
-    #                 next_layer_flag = True
-    #         # L3
-    #         elif i == 3 and next_layer_flag:
-    #             for label in range(10):
-    #                 h_list[label] = layer(h_list[label])
-    #                 goodness_per_label[label] += h_list[label].pow(2).mean(1)
-    #             predicted_with_layers_up_to += 1
-    #             next_layer_flag = False
-    #             if max(goodness_per_label) < (12.502 - 2.061):
-    #                 next_layer_flag = True
-    #         # L4
-    #         elif i == 4 and  next_layer_flag:
-    #             for label in range(10):
-    #                 h_list[label] = layer(h_list[label])
-    #                 goodness_per_label[label] += h_list[label].pow(2).mean(1)
-    #             predicted_with_layers_up_to += 1
-    #     h_list.clear()
-    #     # print(goodness_per_label, predicted_with_layers_up_to)
-    #     # print(goodness_per_label.argmax(0))
-    #     return goodness_per_label.argmax(0), predicted_with_layers_up_to
+    def check_confidence(self, layer_num, confidence_mean_vec, confidence_std_vec, softmax_layer_output_l):
+        confidence_flag = False
+        threshold = confidence_mean_vec[layer_num] - confidence_std_vec[layer_num]
+        if torch.max(softmax_layer_output_l) > threshold:  # then we are confident
+            confidence_flag = True
+        return confidence_flag
+
+    def light_predict_one_sample(self, x, confidence_mean_vec, confidence_std_vec):
+        h = overlay_on_x_neutral(x)
+
+        confidence_flag = False  # if confident: True
+        predicted_with_layers_up_to = 0
+        for i, (layer, softmax_layer) in enumerate(zip(self.layers, self.softmax_layers), start=0):
+            if not confidence_flag:
+                predicted_with_layers_up_to += 1
+                h = layer(h)
+
+                try:
+                    softmax_layer_input
+                    softmax_layer_input = torch.cat((softmax_layer_input, h.cpu()), 1)
+                    # print("in try: ", softmax_layer_input.size(), "i: ", i)  # temp
+                except NameError:
+                    softmax_layer_input = h.cpu()
+                    # print("in except: ", softmax_layer_input.size(), "i: ", i)  # temp
+
+                softmax_layer_output_l, softmax_layer_output = softmax_layer(softmax_layer_input)
+
+                # check confidence
+                # not required for the last layer
+                confidence_flag = self.check_confidence(layer_num=i, confidence_mean_vec=confidence_mean_vec,
+                                                        confidence_std_vec=confidence_std_vec,
+                                                        softmax_layer_output_l=softmax_layer_output_l)
+
+        return softmax_layer_output.argmax(1), predicted_with_layers_up_to
 
     def light_predict_analysis(self, x, num_layers):  # dims is not needed; just num layers
         num_samples = x.shape[0]
@@ -135,9 +138,12 @@ class Net(torch.nn.Module):
 
             # print(softmax_layer(softmax_layer_input).shape)
             # print(softmax_layer(softmax_layer_input).detach().cpu().numpy())
-            y_predicted_on_layer[i, :] = softmax_layer(softmax_layer_input).argmax(1)  # to be checked
+            # y_predicted_on_layer[i, :] = softmax_layer(softmax_layer_input).argmax(1)  # to be checked
+            softmax_layer_output_l, softmax_layer_output = softmax_layer(softmax_layer_input)
+            y_predicted_on_layer[i, :] = softmax_layer_output.argmax(1)  # to be checked
             # softmax_output_on_layer[i, :, :] = softmax_layer(softmax_layer_input).detach().cpu().numpy()
-            softmax_output_on_layer[i, :, :] = softmax_layer.forward_l(softmax_layer_input).detach().cpu().numpy()
+            # softmax_output_on_layer[i, :, :] = softmax_layer.forward(softmax_layer_input).detach().cpu().numpy()
+            softmax_output_on_layer[i, :, :] = softmax_layer_output_l.detach().cpu().numpy()
         # print(y_predicted_on_layer.shape)
         # exit()
 
@@ -207,14 +213,14 @@ class SoftmaxLayer(nn.Module):
 
     def forward(self, x):
         #  x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
-        temp = self.softmax_l(x)
-        output = self.softmax(temp)  # .argmax(1)
-        return output
+        output_l = self.softmax_l(x)
+        output = self.softmax(output_l)  # .argmax(1)
+        return output_l, output
 
-    def forward_l(self, x):
-        #  x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
-        output = self.softmax_l(x)
-        return output
+    # def forward_l(self, x):
+    #     #  x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
+    #     output = self.softmax_l(x)
+    #     return output
 
     def to_categorical(y, num_classes):
         """ 1-hot encodes a tensor """
@@ -222,7 +228,7 @@ class SoftmaxLayer(nn.Module):
 
     def train(self, x, y):
         self.opt.zero_grad()
-        yhat = self.forward(x)
+        _, yhat = self.forward(x)
         # y_one_hot = nn.functional.one_hot(y, num_classes=10).to(torch.float32)
         loss = self.criterion(yhat.cuda(), y)
         loss.backward()
@@ -263,5 +269,5 @@ def build_model(x_pos, x_neg, x_neutral, targets):
             model.train_softmax_layer(x_neutral_, targets_, batch_size, dims)  # , num_layers, num_neurons
 
     # save model
-    name = 'temp'  # '4L_2kN_100E_500B' '2L_500N_100E_5kB_50kS' '2L_500N_10E_500B_50kS'
+    name = 'temp_'  # '4L_2kN_100E_500B' '2L_500N_100E_5kB_50kS' '2L_500N_10E_500B_50kS'
     torch.save(model, 'model/' + name)

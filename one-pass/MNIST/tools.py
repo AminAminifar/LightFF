@@ -12,6 +12,12 @@ def plot_softmax_distributions(matrix, y_predicted_on_layer, targets, num_layers
     row_titles = ['Class 0', 'Class 1', 'Class 2', 'Class 3', 'Class 4',
                   'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9']
 
+    mean_all = 0
+    std_all = 0
+
+    mean_all_incorrect_labels = 0
+    std_all_incorrect_labels = 0
+
     fig, axes = plt.subplots(nrows=10, ncols=10, figsize=(15, 15))
     for col_index in range(10):
         for row_index in range(10):
@@ -19,11 +25,32 @@ def plot_softmax_distributions(matrix, y_predicted_on_layer, targets, num_layers
             indices_correct = np.where((targets == col_index) & (targets == y_predicted_on_layer))
             indices_incorrect = np.where((targets == col_index) & (targets != y_predicted_on_layer))
 
-            indices = indices_incorrect
+            indices = indices_correct
 
             sns.histplot(data=matrix[indices, row_index][0], ax=axes[row_index, col_index], kde=True, legend=False,
                          bins=50)
             mean_value = np.mean(matrix[indices, row_index][0])
+            axes[row_index, col_index].axvline(mean_value, color='red', linestyle='dashed', linewidth=1, label='Mean')
+
+            if row_index == col_index:
+                print('mean:', np.mean(matrix[indices, row_index][0]))
+                print('std:', np.std(matrix[indices, row_index][0]))
+                mean_all += np.mean(matrix[indices, row_index][0])
+                std_all += np.std(matrix[indices, row_index][0])
+            else:
+                mean_all_incorrect_labels += np.mean(matrix[indices, row_index][0])
+                std_all_incorrect_labels += np.std(matrix[indices, row_index][0])
+    mean_all /= 10
+    std_all /= 10
+
+    print("Averaged mean: ", mean_all)
+    print("Averaged std: ", std_all)
+
+    mean_all_incorrect_labels /= 10 * (10 - 1)
+    std_all_incorrect_labels /= 10 * (10 - 1)
+
+    print("Averaged mean_all_incorrect_labels: ", mean_all_incorrect_labels)
+    print("Averaged std_all_incorrect_labels: ", std_all_incorrect_labels)
 
     plt.tight_layout()
     plt.show()
@@ -92,10 +119,10 @@ def analysis_val_set(model, inputs, targets):
     softmax_output_on_layer = np.zeros((num_layers, num_val_samples, 10))  # 10 is the number of softmax neurons
 
     for i in range(num_batches):
-        x_pos_ = inputs[chunk_indices_validation[i]]
+        x_ = inputs[chunk_indices_validation[i]]
 
         temp_y_predicted_on_layer, temp_cumulative_goodness_on_layer, temp_softmax_output_on_layer = \
-            model.light_predict_analysis(x=x_pos_, num_layers=num_layers)
+            model.light_predict_analysis(x=x_, num_layers=num_layers)
 
         y_predicted_on_layer[:, chunk_indices_validation[i]] = temp_y_predicted_on_layer#.detach().cpu().numpy()
 
@@ -104,7 +131,7 @@ def analysis_val_set(model, inputs, targets):
 
         softmax_output_on_layer[:, chunk_indices_validation[i], :] = temp_softmax_output_on_layer
 
-    plot_softmax_distributions(softmax_output_on_layer[0, :, :], y_predicted_on_layer[0, :],
+    plot_softmax_distributions(softmax_output_on_layer[3, :, :], y_predicted_on_layer[0, :],
                                targets.detach().cpu().numpy(), num_layers)
 
     exit()
