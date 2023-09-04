@@ -60,7 +60,7 @@ inputs, targets = inputs.cuda(), targets.cuda()
 # create a validation set
 X_train, X_val, y_train, y_val = train_test_split(inputs, targets, test_size=10000, random_state=0)
 
-Train_flag = False  # True False
+Train_flag = True  # True False
 
 # train
 if Train_flag:
@@ -74,7 +74,7 @@ if Train_flag:
 
 # Load the trained model from saved file
 # '4L_2kN_100E_500B' '2L_500N_100E_5000B' '4L_2000N_500E_5kB_50kS' '2L_500N_100E_5kB_50kS'
-name = 'temp'
+name = 'temp_'
 model = torch.load('model/' + name)
 
 # evaluation

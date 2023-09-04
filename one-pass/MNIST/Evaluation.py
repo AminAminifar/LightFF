@@ -25,8 +25,10 @@ def eval_train_set(model, inputs, targets):
 
     y_predicted = np.zeros(num_train_samples)
     for i in range(num_batches):
-        x_pos_ = inputs[chunk_indices[i]]
-        y_predicted[chunk_indices[i]] = model.predict(x_pos_).detach().cpu().numpy()
+        # x_pos_ = inputs[chunk_indices[i]]
+        # y_predicted[chunk_indices[i]] = model.predict(x_pos_).detach().cpu().numpy()
+        x_ = inputs[chunk_indices[i]]
+        y_predicted[chunk_indices[i]] = model.predict_one_pass(x_, batch_size=batch_size).detach().cpu().numpy()
 
     print("\nResults for the {}TRAIN{} set: ".format('\033[1m', '\033[0m'))
     print_results(targets.detach().cpu().numpy(), y_predicted)
@@ -43,8 +45,10 @@ def eval_test_set(model, inputs, targets):
     chunk_indices_test = np.array_split(test_data_record_indices, num_batches)
     y_predicted = np.zeros(num_test_samples)
     for i in range(num_batches):
-        x_pos_ = inputs[chunk_indices_test[i]]
-        y_predicted[chunk_indices_test[i]] = model.predict(x_pos_).detach().cpu().numpy()
+        # x_pos_ = inputs[chunk_indices_test[i]]
+        # y_predicted[chunk_indices_test[i]] = model.predict(x_pos_).detach().cpu().numpy()
+        x_ = inputs[chunk_indices_test[i]]
+        y_predicted[chunk_indices_test[i]] = model.predict_one_pass(x_, batch_size=batch_size).detach().cpu().numpy()
 
     print("\nResults for the {}TEST{} set: ".format('\033[1m', '\033[0m'))
     print_results(targets.detach().cpu().numpy(), y_predicted)
@@ -61,8 +65,11 @@ def eval_val_set(model, inputs, targets):
     chunk_indices_validation = np.array_split(test_data_record_indices, num_batches)
     y_predicted = np.zeros(num_test_samples)
     for i in range(num_batches):
-        x_pos_ = inputs[chunk_indices_validation[i]]
-        y_predicted[chunk_indices_validation[i]] = model.predict(x_pos_).detach().cpu().numpy()
+        # x_pos_ = inputs[chunk_indices_validation[i]]
+        # y_predicted[chunk_indices_validation[i]] = model.predict(x_pos_).detach().cpu().numpy()
+        x_ = inputs[chunk_indices_validation[i]]
+        y_predicted[chunk_indices_validation[i]] = model.predict_one_pass(x_,
+                                                                          batch_size=batch_size).detach().cpu().numpy()
 
     print("\nResults for the {}VALIDATION{} set: ".format('\033[1m', '\033[0m'))
     print_results(targets.detach().cpu().numpy(), y_predicted)
