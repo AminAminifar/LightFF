@@ -215,7 +215,7 @@ class SoftmaxLayer(nn.Module):
         #  x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
         output_l = self.softmax_l(x)
         output = self.softmax(output_l)  # .argmax(1)
-        return output_l, output
+        return output_l, output_l # nn.CrossEntropyLoss() will do the softmax internally
 
     # def forward_l(self, x):
     #     #  x_direction = x / (x.norm(2, 1, keepdim=True) + 1e-4)
