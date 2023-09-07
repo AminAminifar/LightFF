@@ -98,5 +98,5 @@ Evaluation.eval_val_set(model, inputs=X_val, targets=y_val)
 # tools.analysis_val_set_2l(model, inputs=X_val, targets=y_val)
 mean, std = tools.analysis_val_set(model, inputs=X_val, targets=y_val,length_network= length_network)
 
-Evaluation.eval_val_set_light(model, inputs=X_val, targets=y_val,means = mean, stds = std,length_network= length_network)
-# Evaluation.eval_val_set_light(model, inputs=x_te, targets=y_te)  ## temporary use
+Evaluation.eval_val_set_light(model, inputs=x_te, targets=y_te,means = mean, stds = std,length_network= length_network)
+
