@@ -72,7 +72,7 @@ def analysis_val_set(model, inputs, targets,size):
     std =  []
     # t = targets.detach().cpu().numpy()
     for i in range(num_layers):
-        temp_mean, temp_std = calculate_goodness_distributions(softmax_output_on_layer[i, :, :], y_predicted_on_layer[0, :], targets.detach().cpu().numpy(), num_layers)
+        temp_mean, temp_std = calculate_goodness_distributions(softmax_output_on_layer[i, :, :], y_predicted_on_layer[i, :], targets.detach().cpu().numpy(), num_layers)
         mean.append(temp_mean)
         std.append(temp_std)
 
