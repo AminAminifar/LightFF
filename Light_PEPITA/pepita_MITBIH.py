@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 import torch.utils.data as Data
 
 print('MITBIH_PEPITA')
-layers = [187, 2000,2000,2000,2000]
+layers = [187, 1024,1024,1024]
 classes = 5
 epoch_set = 100
 length_network = len(layers)-1

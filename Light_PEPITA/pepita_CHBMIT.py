@@ -16,7 +16,7 @@ import CHBMIT.chbmit_dataset.load_data as chb
 import torch.utils.data as Data
 
 print('CHBMIT_PEPITA')
-layers = [1024, 2000,2000,2000,2000]
+layers = [1024, 1024,1024,1024]
 classes = 2
 epoch_set = 100
 length_network = len(layers)-1

@@ -13,7 +13,7 @@ import numpy as np
 from torch.optim import Adam
 
 print('MNNIST_PEPITA')
-layers = [784, 2000,2000,2000,2000]
+layers = [784, 1024,1024,1024]
 classes = 10
 epoch_set = 100
 length_network = len(layers)-1
@@ -84,7 +84,7 @@ class NetFC1x1024DOcust(nn.Module):
     
 # set hyperparameters
 ## learning rate
-eta = 0.01  
+eta = 0.001  
 ## dropout keep rate
 keep_rate = 0.9
 ## loss --> used to monitor performance, but not for parameter updates (PEPITA does not backpropagate the loss)
