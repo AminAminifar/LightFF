@@ -149,14 +149,14 @@ def get_CIFAR10_partition(opt, partition):
             Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261)),
         ]
     )
-    if partition in ["train"]:
+    if partition in ["train","meanstd"]:
         cifar = torchvision.datasets.CIFAR10(
             os.path.join(get_original_cwd(), opt.input.path),
             train=True,
             download=True,
             transform=transform,
         )
-    elif partition in ["val", "test"]:
+    elif partition in ["val", "test", "onebyone"]:
         cifar = torchvision.datasets.CIFAR10(
             os.path.join(get_original_cwd(), opt.input.path),
             train=False,
