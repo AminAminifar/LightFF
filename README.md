@@ -4,7 +4,7 @@ Code to run the simulations of the paper:
 
 ![lightinferenceFF](./img/main.png)
 
-We apply our proposed lightweight inference in the context of three state-of-the-art techniques, namely, the Forward-Forward Algorithm<sup>[2]</sup> (Multi-Pass [MP] and One-Pass [OP]) and PEPITA<sup>[2]</sup> [PT].
+We apply our proposed lightweight inference in the context of three state-of-the-art techniques, namely, the Forward-Forward Algorithm<sup>[1]</sup> (Multi-Pass [MP] and One-Pass [OP]) and PEPITA<sup>[2]</sup> [PT].
 
 Lightweight-FF is based on [loewex's FF implementation](https://github.com/loeweX/Forward-Forward). Lightweight-PT is based on [GiorgiaD's PT implementation](https://github.com/GiorgiaD/PEPITA). 
 
