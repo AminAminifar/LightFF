@@ -31,7 +31,7 @@ class One_Pass(nn.Module):
         self.softmax_l = nn.Linear(in_features, out_features)
         nn.init.xavier_uniform_(self.softmax_l.weight)
         self.softmax = torch.nn.Softmax(dim=1)
-        self.opt = Adam(self.parameters(), lr=0.03)
+        self.opt = Adam(self.parameters(), lr=0.001)
         self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x):
