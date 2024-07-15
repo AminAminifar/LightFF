@@ -1,11 +1,11 @@
-# Lightweight Inference for Forward-Forward Training Algorithm
+# LightFF: Lightweight Inference for Forward-Forward Algorithm
 
 ![lightinferenceFF](./img/main.png)
 
 We apply our proposed lightweight inference in the context of three state-of-the-art techniques, namely, the Forward-Forward Algorithm<sup>[1]</sup> (Multi-Pass [MP] and One-Pass [OP]) and PEPITA<sup>[2]</sup> [PT].
 
 Code to run the simulations of the paper: 
-**Lightweight Inference for Forward-Forward Training Algorithm**. Taking MNIST as an example, the codes are shown as follows:
+**LightFF: Lightweight Inference for Forward-Forward Algorithm**. Taking MNIST as an example, the codes are shown as follows:
 
 - Lightweight-MP-MNIST: ``python Lightweight-FF/Lightweight-MP/main.py``
 - Lightweight-OP-MNIST: ``python Lightweight-FF/Lightweight-OP/main.py``
