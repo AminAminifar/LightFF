@@ -108,7 +108,7 @@ class NetFC1x1024DOcust(nn.Module):
     
 # set hyperparameters
 ## learning rate
-eta = 0.001  
+eta = 0.01  
 ## dropout keep rate
 keep_rate = 0.9
 ## loss --> used to monitor performance, but not for parameter updates (PEPITA does not backpropagate the loss)
