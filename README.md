@@ -20,3 +20,16 @@ Lightweight-FF is based on [loewex's FF implementation](https://github.com/loewe
 
 [2] Dellaferrera, Giorgia, and Gabriel Kreiman. "Error-driven input modulation: solving the credit assignment problem without a backward pass." International Conference on Machine Learning. PMLR, 2022.
 
+## Citation
+
+```
+@inproceedings{aminifar2024lightff,
+  title={LightFF: Lightweight Inference for Forward-Forward Algorithm},
+  author={Aminifar, Amin and Huang, Baichuan and Fahliani, Azra Abtahi and Aminifar, Amir},
+  booktitle={27th European Conference on Artificial Intelligence, ECAI-2024},
+  pages={1728--1735},
+  year={2024},
+  organization={IOS Press}
+}
+```
+
