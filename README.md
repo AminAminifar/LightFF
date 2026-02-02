@@ -16,6 +16,10 @@ Lightweight-FF is based on [loewex's FF implementation](https://github.com/loewe
 
 > In the ``./test`` folder, we also provide the lightweight inference code based on [mpezeshki's FF implementation](https://github.com/mpezeshki/pytorch_forward_forward), as a test version.
 
+We also provide an [**interactive demo**](https://lightffdemo.streamlit.app/) to show the saved time/energy by our LightFF:
+
+![lightinferenceFF](./img/demo.png)
+
 [1] Hinton, Geoffrey. "The forward-forward algorithm: Some preliminary investigations." arXiv preprint arXiv:2212.13345 (2022).
 
 [2] Dellaferrera, Giorgia, and Gabriel Kreiman. "Error-driven input modulation: solving the credit assignment problem without a backward pass." International Conference on Machine Learning. PMLR, 2022.
